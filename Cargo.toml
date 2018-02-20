@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["majorz <zahari@resin.io>"]
 
 [dependencies]
+nix = "0.10"
