@@ -4,7 +4,7 @@ use std::thread;
 use std::time;
 use std::sync::mpsc::{channel, Sender};
 
-use nix::sys::signal::{SigSet, SIGINT, SIGQUIT, SIGTERM, SIGHUP};
+use nix::sys::signal::{SigSet, SIGHUP, SIGINT, SIGQUIT, SIGTERM};
 
 #[derive(Debug)]
 enum Event {
@@ -46,7 +46,7 @@ fn exit_sigmask() -> SigSet {
     mask.add(SIGQUIT);
     mask.add(SIGTERM);
     mask.add(SIGHUP);
-    
+
     mask
 }
 
@@ -54,8 +54,8 @@ fn trap_signals() {
     let mask = exit_sigmask();
 
     let sig = mask.wait().unwrap();
-    
-    println!("\nReceived {:?}", sig);    
+
+    println!("\nReceived {:?}", sig);
 }
 
 fn main() {
@@ -63,7 +63,7 @@ fn main() {
 
     let (event_tx, event_rx) = channel();
     let event_tx_clone = event_tx.clone();
-    
+
     thread::spawn(move || {
         process(&event_tx_clone);
     });
@@ -74,22 +74,20 @@ fn main() {
 
     loop {
         match event_rx.recv() {
-            Ok(event) => {
-                match event {
-                    Event::Working(count) => println!("Working: {}", count),
-                    Event::Completed => {
-                        println!("Completed");
-                        return;
-                    },
-                    Event::Terminate => {
-                        println!("Terminated");
-                        return;
-                    },
+            Ok(event) => match event {
+                Event::Working(count) => println!("Working: {}", count),
+                Event::Completed => {
+                    println!("Completed");
+                    return;
+                }
+                Event::Terminate => {
+                    println!("Terminated");
+                    return;
                 }
             },
             Err(e) => {
                 panic!("Error: {:?}", e);
-            },
+            }
         }
     }
 }
