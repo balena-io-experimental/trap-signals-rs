@@ -1,5 +1,5 @@
 [package]
-name = "trap-signals-rs"
+name = "trap-signals"
 version = "0.1.0"
 authors = ["majorz <zahari@resin.io>"]
 
