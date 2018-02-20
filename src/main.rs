@@ -13,41 +13,6 @@ enum Event {
     Terminate,
 }
 
-fn handle(exit_tx: &Sender<&'static str>) {
-    let (event_tx, event_rx) = channel();
-    let event_tx_clone = event_tx.clone();
-    
-    thread::spawn(move || {
-        process(&event_tx_clone);
-    });
-
-    thread::spawn(move || {
-        trap(&event_tx);
-    });
-
-    loop {
-        match event_rx.recv() {
-            Ok(event) => {
-                match event {
-                    Event::Working(count) => println!("Working: {}", count),
-                    Event::Completed => {
-                        exit_tx.send("Completed").unwrap();
-                        return;
-                    },
-                    Event::Terminate => {
-                        exit_tx.send("Terminated").unwrap();
-                        return;
-                    },
-                }
-            },
-            Err(e) => {
-                panic!("Error: {:?}", e);
-            },
-        }
-        
-    }
-}
-
 fn process(event_tx: &Sender<Event>) {
     let mut count = 0;
 
@@ -84,18 +49,36 @@ fn trap_signals() {
 }
 
 fn main() {
-    let (exit_tx, exit_rx) = channel();
-
+    let (event_tx, event_rx) = channel();
+    let event_tx_clone = event_tx.clone();
+    
     thread::spawn(move || {
-        handle(&exit_tx);
+        process(&event_tx_clone);
     });
 
-    match exit_rx.recv() {
-        Ok(result) => {
-            println!("{}", result);
-        },
-        Err(e) => {
-            panic!("Error: {:?}", e);
-        },
+    thread::spawn(move || {
+        trap(&event_tx);
+    });
+
+    loop {
+        match event_rx.recv() {
+            Ok(event) => {
+                match event {
+                    Event::Working(count) => println!("Working: {}", count),
+                    Event::Completed => {
+                        println!("Completed");
+                        return;
+                    },
+                    Event::Terminate => {
+                        println!("Terminated");
+                        return;
+                    },
+                }
+            },
+            Err(e) => {
+                panic!("Error: {:?}", e);
+            },
+        }
+        
     }
 }
