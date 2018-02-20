@@ -34,21 +34,33 @@ fn trap(event_tx: &Sender<Event>) {
     event_tx.send(Event::Terminate).unwrap();
 }
 
-fn trap_signals() {
+fn block_exit_signals() {
+    let mask = exit_sigmask();
+    mask.thread_block().unwrap();
+}
+
+fn exit_sigmask() -> SigSet {
     let mut mask = SigSet::empty();
 
     mask.add(SIGINT);
     mask.add(SIGQUIT);
     mask.add(SIGTERM);
     mask.add(SIGHUP);
-    mask.thread_block().unwrap();
+    
+    mask
+}
+
+fn trap_signals() {
+    let mask = exit_sigmask();
 
     let sig = mask.wait().unwrap();
     
-    println!("Received SIG {:?}", sig);    
+    println!("\nReceived {:?}", sig);    
 }
 
 fn main() {
+    block_exit_signals();
+
     let (event_tx, event_rx) = channel();
     let event_tx_clone = event_tx.clone();
     
@@ -79,6 +91,5 @@ fn main() {
                 panic!("Error: {:?}", e);
             },
         }
-        
     }
 }
