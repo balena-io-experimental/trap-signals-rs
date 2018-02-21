@@ -1,6 +1,6 @@
 build: &build
   docker:
-    - image: majorz/rust-$CIRCLE_JOB:rust-1.23.0
+    - image: majorz/rust-$CIRCLE_JOB:rust-1.24.0
 
       environment:
         BINARY: trap-signals
@@ -68,7 +68,7 @@ jobs:
 
   test:
     docker:
-      - image: majorz/rust-test-deploy:rust-nightly-2018-01-08
+      - image: majorz/rust-test-deploy:rust-nightly-2018-02-19
     steps:
       - checkout
 
